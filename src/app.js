@@ -11,7 +11,7 @@ app.use(cors());
 const repositories = [];
 
 app.get("/repositories", (request, response) => {
-  app.json(repositories)
+  response.json(repositories)
 });
 
 app.post("/repositories", (request, response) => {
@@ -25,18 +25,68 @@ app.post("/repositories", (request, response) => {
     likes:0
   }
 
+  repositories.push(project)
+  response.json(project)
+
 });
 
 app.put("/repositories/:id", (request, response) => {
+  const {id} = request.params
   const {title,url,techs} = request.body
+
+  const projectIndex = repositories.findIndex(project=>project.id == id)
+
+  if(projectIndex < 0){
+    response.status(400)
+    return response.json({err:'project not found'})
+  }
+
+  const project = {
+    id,
+    title,
+    url,
+    techs,
+    likes:repositories[projectIndex].likes
+  }
+
+  response.json(project)
 });
 
 app.delete("/repositories/:id", (request, response) => {
-  // TODO
+  const {id} = request.params
+  const projectIndex = repositories.findIndex(project=>project.id == id)
+
+  if(projectIndex < 0){
+    response.status(400)
+    return response.json({err:'project not found'})
+  }
+
+  repositories.splice(projectIndex,1)
+  response.status(204)
+  response.json({message:'ok'})
 });
 
 app.post("/repositories/:id/like", (request, response) => {
-  // TODO
+  const {id} = request.params
+  
+
+  const projectIndex = repositories.findIndex(project=>project.id == id)
+
+  if(projectIndex < 0){
+    response.status(400)
+    return response.json({err:'project not found'})
+  }
+
+  const project = {
+    id:repositories[projectIndex].id,
+    title:repositories[projectIndex].title,
+    url:repositories[projectIndex].url,
+    techs:repositories[projectIndex].techs,
+    likes:repositories[projectIndex].likes + 1
+  }
+  repositories[projectIndex] = project
+  response.status(200)
+  response.json(project)
 });
 
 module.exports = app;
